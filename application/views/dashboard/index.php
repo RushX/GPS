@@ -29,6 +29,79 @@
     .mapboxgl-popup {
       max-width: 200px;
     }
+
+    .dropbtn {
+      background-color: #04AA6D;
+      color: white;
+      padding: 16px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Dropdown button on hover & focus */
+    .dropbtn:hover,
+    .dropbtn:focus {
+      background-color: #3e8e41;
+    }
+
+    /* The search field */
+    #myInput {
+      box-sizing: border-box;
+      background-image: url('searchicon.png');
+      background-position: 14px 12px;
+      background-repeat: no-repeat;
+      font-size: 16px;
+      padding: 14px 20px 12px 45px;
+      border: none;
+      border-bottom: 1px solid #ddd;
+    }
+
+    /* The search field when it gets focus/clicked on */
+    #myInput:focus {
+      outline: 3px solid #ddd;
+    }
+
+    /* The container <div> - needed to position the dropdown content */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      margin-left: 200px;
+      height: 40px;
+    }
+
+    /* Dropdown Content (Hidden by Default) */
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f6f6f6;
+      min-width: 230px;
+
+      border: 1px solid #ddd;
+      z-index: 1;
+    }
+
+    /* Links inside the dropdown */
+    .dropdown-content a {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    #ch {
+      display: none;
+    }
+
+    /* Change color of dropdown links on hover */
+    .dropdown-content a:hover {
+      background-color: #f1f1f1
+    }
+
+    /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+    .show {
+      display: block;
+    }
   </style>
 </head> <!-- `body` tag options: Apply one or more of the following classes to to the body tag to get the desired effect * sidebar-collapse * sidebar-mini -->
 
@@ -96,7 +169,13 @@
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Bikes</h3>
+                <div class="dropdown">
+                  <!-- <button onclick="myFunction()" class="dropbtn">Search Bike</button> -->
+                  <input type="text" placeholder="Search.." id="myInput" onkeyup="myFunction(),filterFunction()">
+                  <div id="myDropdown" class="dropdown-content">
 
+                  </div>
+                </div>
                 <div class="card-tools">
                   <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                     <i class="fas fa-minus"></i>
@@ -123,18 +202,43 @@
 
 
   <script>
+    $.get('<?php echo site_url() ?>api/get/intransit',
+      function(data) { // success callback
+        obj = JSON.parse(data)
+        if (obj.success == true) {
+          bikes = obj.data;
+          for (index in bikes) {
+
+            let bid = bikes[index].bid
+            let name = bikes[index].bike_name
+            $('#myDropdown').append($(`<a onclick="goto(${bid})" >${name}</a>`));
+          }
+
+        } else {
+
+          toastr.error(obj.message, "Error");
+
+        }
+      })
+
+   
+
     mapboxgl.accessToken = 'pk.eyJ1IjoidW5pbzEyMyIsImEiOiJjbGNscmVyaTkwcDUyM3ByeXNlMzhweHlsIn0.WxsoBTX_qfUojJMKaET4HQ';
     const map = new mapboxgl.Map({
       container: 'map',
       // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
       style: 'mapbox://styles/mapbox/light-v9',
-      center: <?php echo "[{$intransarr[0]->longitude},{$intransarr[0]->latitude}]"?>,
+      center: <?php echo "[{$intransarr[0]->longitude},{$intransarr[0]->latitude}]" ?>,
       zoom: 15
     });
+    let bikearr=[]
     <?php
     $count = 1;
     foreach ($intransarr as $arr) {
-      echo `const bike_$count = [$arr->longitude,$arr->latitude]\n
+    //   echo "
+    // bikearr['{$arr->bid}']['lat']=$arr->latitude;
+    // bikearr['{$arr->bid}']['long']=$arr->longitude;";
+      echo `let bike_$count = [$arr->longitude,$arr->latitude]\n
           const popup_$count = new mapboxgl.Popup({\n
             offset: 25\n
           }).setText(\n
@@ -152,35 +256,39 @@
       $count++;
     }
     ?>
-
-    // // create the popup
-    // const popup = new mapboxgl.Popup({
-    //   offset: 25
-    // }).setText(
-    //   'Construction on the Washington Monument began in 1848.'
-    // );
-    // const popup2 = new mapboxgl.Popup({
-    //   offset: 25
-    // }).setText(
-    //   'Construction on the Washington Monument began in 1848.'
-    // );
-
-    // // create DOM element for the marker
-    // const el = document.createElement('div');
-    // el.id = 'marker';
-    // const el2 = document.createElement('div');
-    // el2.id = 'marker2';
-
-    // // create the marker
-    // new mapboxgl.Marker(el)
-    //   .setLngLat(monument)
-    //   .setPopup(popup) // sets a popup on this marker
-    //   .addTo(map);
-    // new mapboxgl.Marker(el2)
-    //   .setLngLat(monument2)
-    //   .setPopup(popup2) // sets a popup on this marker
-    //   .addTo(map);
+    map.on('mouseenter', 'marker', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    function goto(bid) {
+      var getvar='bike_'+bid
+      map.flyTo({
+        center:bikearr['bid']
+      });
+    }
   </script>
+  <script>
+    function myFunction() {
+      document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    function filterFunction() {
+      var input, filter, ul, li, a, i;
+      input = document.getElementById("myInput");
+      filter = input.value.toUpperCase();
+      div = document.getElementById("myDropdown");
+      a = div.getElementsByTagName("a");
+      for (i = 0; i < a.length; i++) {
+        txtValue = a[i].textContent || a[i].innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          a[i].style.display = "";
+        } else {
+          a[i].style.display = "none";
+        }
+      }
+    }
+  </script>
+
+
 </body>
 
 </html>

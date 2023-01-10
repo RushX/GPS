@@ -65,9 +65,9 @@ class Api extends CI_Controller
                 echo json_encode(array("status" => 0, "success" => true));
             } elseif (!empty($data)) {
                 if ($data == 1) {
-                    echo json_encode(array("status" => 1, "success" => false, "message" => "User Id Required"));
+                    echo json_encode(array("status" => 1, "success" => false, "message" => "Entry already exist in the database"));
                 } else {
-                    echo json_encode(array("status" => 2, "success" => false, "message" => "Failed to execute the query"));
+                    echo json_encode(array("status" => 2, "success" => false, "message" => "User Id Required"));
                 }
             }
         } else {

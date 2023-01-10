@@ -193,6 +193,17 @@ class Api_model extends CI_Model
 
     public function enroute($input)
     {
+        if(empty($input['bid'])){
+            return 2;
+            die;
+        }
+        $this->db->where('bid', $input['bid']);
+        $data = $this->db->get('geo_data');
+        if($data->num_rows()>=1){
+            return 1;
+            die;
+        }
+
         $this->db->set('bid', $input['bid']);
         $this->db->set('route', json_encode($input['route']));
         $this->db->insert('geo_data');

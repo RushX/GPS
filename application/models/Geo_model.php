@@ -18,11 +18,9 @@ class Geo_model extends CI_Model
     }
     public function set_latest_data($bid)
     {
-        // $this->db->set('lat', $lat);
-        // $this->db->set('long', $long);
-        // $this->db->set('battery', $battery);
-        
-        // $this->db->where('bid',$bid);
-        // $this->db->update('bikes');
+        $this->db->set('lat', $lat);
+        $this->db->set('long', $long);
+        $this->db->where('bid',$bid);
+        $this->db->update('bikes');
     }
-}
+} 
